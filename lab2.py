@@ -101,7 +101,7 @@ def run_server():
 		user_id = login_hash(email,password)
 		q = "SELECT COUNT(*)\
 			FROM apps\
-			WHERE client_id='{}'".format(id)
+			WHERE client_id='{}'".format(client_id)
 		r = db.exec_query(q).fetchone()
 		if r[0] > 0:
 			random.seed(version=2)
