@@ -41,6 +41,25 @@ def run_server():
 	def login_hash(email, passwd):
 		return md5((email+"salt"+passwd).encode("utf-8")).hexdigest()
 
+	def check_token(token):
+		if token is None:
+			return False
+
+		q = "SELECT expires\
+			FROM app_tokens\
+			WHERE token = '{}'".format(token)
+		r = db.exec_query(q).fetchall()
+
+		if len(r) > 0:
+			r = r[0]
+			d = datetime.datetime.now()
+			dt= datetime.datetime.strptime(r[0].split('.')[0],"%Y-%m-%dT%H:%M:%S")
+			if dt < d:
+				return False
+			return True
+		else:
+			return False
+
 	@app.route("/")
 	def main_page():
 		return "Sample Text"
@@ -75,7 +94,6 @@ def run_server():
 
 	@app.route("/login", methods=["GET"])
 	def get_login():
-		print("h0")
 		try:
 			client_id = flask.request.args["client_id"]
 		except (ValueError, KeyError):
@@ -129,13 +147,19 @@ def run_server():
 			q = "INSERT INTO codes VALUES ('{}', '{}', '{}', '{}')".format(client_id, user_id, code, date)
 			db.exec_query(q)
 			db.commit()
+			print(redir)
 			if redir is None:
 				return flask.render_template(
 					"code.html",
 					code=code
 				)
+			elif redir =="":
+				return flask.render_template(
+					"code.html",
+					code=code
+				)
 			else:
-				flask.redirect(redir + "/?code=" + str(code));
+				return flask.redirect(redir + "/?code=" + str(code));
 		else:
 			flask.abort(400)
 
@@ -225,6 +249,17 @@ def run_server():
 			}), 201
 		else:
 			flask.abort(400)
+
+	@app.route("/me", methods=["GET"])
+	def get_me():
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "refresh_token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		check_token(token)
 
 	app.run(debug=True, port=8086)
 	
