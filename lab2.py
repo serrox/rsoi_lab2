@@ -78,9 +78,7 @@ def run_server():
 		client_id = flask.request.args["client_id"]
 		redir = flask.request.args["redirect_uri"]
 		if client_id is None:
-			flask.abort(400, "client_id no found!")
-		if redir is None:
-			flask.abort(400, "redirect url no found!")
+			flask.abort(400, "client_id not found!")
 
 		return flask.render_template(
 			"login.html",
@@ -95,9 +93,11 @@ def run_server():
 		email = flask.request.form["email"]
 		password = flask.request.form["pass"]
 		if client_id is None:
-			flask.abort(400, "client_id no found!")
-		if redir is None:
-			flask.abort(400, "redirect url no found!")
+			flask.abort(400, "client_id not found!")
+		if email is None:
+			flask.abort(400, "email not found!")
+		if password is None:
+			flask.abort(400, "password no found!")
 		user_id = login_hash(email,password)
 		q = "SELECT COUNT(*)\
 			FROM apps\
@@ -111,12 +111,67 @@ def run_server():
 			q = "INSERT INTO codes VALUES ('{}', '{}', '{}', '{}')".format(client_id, user_id, code, date)
 			db.exec_query(q)
 			db.commit()
-			return flask.render_template(
-				"code.html",
-				code=code
-			)
+			if redir is None:
+				return flask.render_template(
+					"code.html",
+					code=code
+				)
+			else:
+				flask.redirect(redir + "/?code=" + str(code));
 		else:
 			flask.abort(400)
+
+	@app.route("/oauth", methods=["POST"])
+	def post_oauth():
+		fn = flask.request.form["grant_type"]
+		if fn is None:
+			flask.abort(400, "grant_type not found!")
+		if fn == "access_token":
+			client_id = flask.request.form["client_id"]
+			client_secret = flask.request.form["client_secret"]
+			code = flask.request.form["code"]
+			if client_id is None:
+				flask.abort(400, "client_id not found!")
+			if client_secret is None:
+				flask.abort(400, "client_secret not found!")
+			if code is None:
+				flask.abort(400, "code not found!")
+			q = "SELECT COUNT(*)\
+				FROM apps\
+				WHERE secret_id = '{}' AND client_id = '{}'".format(secret_id, client_id)
+			r = db.exec_query(q).fetchone()
+			if r[0]<=0:
+				flask.abort(400, "wrong id")
+			q = "SELECT expires, user_id\
+				FROM codes\
+				WHERE code = '{}'".format(code)
+			r = db.exec_query(q).fetchone()
+			if len(r) > 0:
+				d = datetime.datetime.now()
+				dt= datetime.datetime.strptime(r[0].split('.')[0],"%Y-%m-%dT%H:%M:%S")
+				if dt < d:
+					flask.abort(400)
+			else:
+				flask.abort(400)
+
+			d = datetime.datetime.now().isoformat()
+			token = md5((client_id+'token'+d).encode("utf-8")).hexdigest()
+			rtoken = md5((client_id+'rtoken'+d).encode("utf-8")).hexdigest()
+
+			date = datetime.datetime.now() + datetime.timedelta(days=365)
+
+			q = "INSERT INTO app_tokens VALUES\
+				('{}', '{}', '{}', '{}', '{}')".format(client_id, user_id, token, rtoken, date.isoformat()
+			)
+			r = db.exec_query(q)
+			db.commit()
+
+			return json.dumps({
+				"access_token": token,
+				"token_type": "bearer",
+				"expires_in": 86400,
+				"refresh_token": rtoken
+			}), 201
 
 	app.run(debug=True, port=8086)
 	
