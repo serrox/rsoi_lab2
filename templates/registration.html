@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Registration</title>
+	</head>
+	<body>
+		<h1>Registration</h1>
+
+		{% if error %}
+			<h3>{{error}}</h3>
+		{% endif %}
+
+		<form method="post">
+			<div style="margin-top: 5px">
+				<input type="email" name="email" placeholder="E-mail">
+			</div>
+			<div style="margin-top: 5px">
+				<input type="password" name="pass" placeholder="Password">
+			</div>
+			<div style="margin-top: 5px">
+				<input type="text" name="name" placeholder="Name">
+			</div>
+
+			<div style="margin-top:5px">
+				<input type="submit" name="RegisterButton" value="Register">
+			</div>
+		</form>
+	</body>
+</html>
