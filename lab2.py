@@ -183,8 +183,7 @@ def run_server():
 			date = datetime.datetime.now() + datetime.timedelta(days=365)
 
 			q = "INSERT INTO app_tokens VALUES\
-				('{}', '{}', '{}', '{}', '{}')".format(client_id, user_id, token, rtoken, date.isoformat()
-			)
+				('{}', '{}', '{}', '{}', '{}')".format(client_id, user_id, token, rtoken, date.isoformat())
 			r = db.exec_query(q)
 			db.commit()
 
@@ -194,6 +193,38 @@ def run_server():
 				"expires_in": 86400,
 				"refresh_token": rtoken
 			}), 201
+		elif fn == "refresh_token":
+			try:
+				refresh_token = flask.request.form["refresh_token"]
+			except (ValueError, KeyError):
+				flask.abort(400, "refresh_token not found!")
+			q = "SELECT  client_id, user_id FROM app_tokens WHERE refresh_token='{}'".format(r_token)
+			r = db.exec_query(q).fetchall()
+			if len(r) == 0:
+				flask.abort(403)
+
+			client_id = r[0][0]
+			user_id = r[0][1]
+
+			d = datetime.datetime.now().isoformat()
+			token = md5((client_id+'token'+d).encode("utf-8")).hexdigest()
+			rtoken = md5((client_id+'rtoken'+d).encode("utf-8")).hexdigest()
+
+			date = datetime.datetime.now() + datetime.timedelta(days=365)
+
+			q = "INSERT INTO app_tokens VALUES\
+				('{}', '{}', '{}', '{}', '{}')".format(client_id, user_id, token, rtoken, date.isoformat())
+			r = db.exec_query(q)
+			db.commit()
+
+			return json.dumps({
+				"access_token": token,
+				"token_type": "bearer",
+				"expires_in": 86400,
+				"refresh_token": rtoken
+			}), 201
+		else:
+			flask.abort(400)
 
 	app.run(debug=True, port=8086)
 	
