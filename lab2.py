@@ -3,6 +3,7 @@ import sqlite3
 import json
 from hashlib import md5
 import datetime
+import random
 
 class db:
     @staticmethod
@@ -37,6 +38,9 @@ class db:
 def run_server():
 	app = flask.Flask(__name__)
 	
+	def login_hash(email, passwd):
+		return md5((email+"salt"+passwd).encode("utf-8")).hexdigest()
+
 	@app.route("/")
 	def main_page():
 		return "Sample Text"
@@ -58,7 +62,7 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 		if r[0]==0:
 			user_id = md5((p['email']+'salt').encode("utf-8")).hexdigest()
-			user_hash = md5((p['email']+"salt"+p['pass']).encode("utf-8")).hexdigest()
+			user_hash = login_hash(p['email'],p['pass'])
 			q = "INSERT INTO users VALUES\
 				('{}', '{}', '{}', '{}', '')".format(
 				user_id, user_hash, p['email'], p['name']
@@ -83,7 +87,33 @@ def run_server():
 			redirect_uri=redir,
 			client_id=client_id
 		)
-		
+
+	@app.route("/login", methods=["POST"])
+	def post_login():
+		client_id = flask.request.form["client_id"]
+		redir = flask.request.form["redirect_uri"]
+		email = flask.request.form["email"]
+		password = flask.request.form["pass"]
+		if client_id is None:
+			flask.abort(400, "client_id no found!")
+		if redir is None:
+			flask.abort(400, "redirect url no found!")
+		user_id = login_hash(email,password)
+		q = "SELECT COUNT(*)\
+			FROM apps\
+			WHERE client_id='{}'".format(id)
+		r = db.exec_query(q).fetchone()
+		if r[0] > 0:
+			random.seed(version=2)
+			code = random.randint(10000,99999)
+
+			return flask.render_template(
+				"code.html",
+				code=code
+			)
+		else:
+			flask.abort(400)
+
 	app.run(debug=True, port=8086)
 	
 run_server()
