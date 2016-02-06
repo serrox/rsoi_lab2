@@ -106,7 +106,11 @@ def run_server():
 		if r[0] > 0:
 			random.seed(version=2)
 			code = random.randint(10000,99999)
-
+			d = datetime.datetime.now() + datetime.timedelta(minutes=10)
+			date = d.isoformat()
+			q = "INSERT INTO codes VALUES ('{}', '{}', '{}', '{}')".format(client_id, user_id, code, date)
+			db.exec_query(q)
+			db.commit()
 			return flask.render_template(
 				"code.html",
 				code=code
