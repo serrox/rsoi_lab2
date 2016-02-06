@@ -75,28 +75,46 @@ def run_server():
 
 	@app.route("/login", methods=["GET"])
 	def get_login():
-		client_id = flask.request.args["client_id"]
-		redir = flask.request.args["redirect_uri"]
-		if client_id is None:
+		print("h0")
+		try:
+			client_id = flask.request.args["client_id"]
+		except (ValueError, KeyError):
 			flask.abort(400, "client_id not found!")
+		try:
+			redir = flask.request.args["redirect_uri"]
+		except (ValueError, KeyError):
+			redir = None
 
-		return flask.render_template(
-			"login.html",
-			redirect_uri=redir,
-			client_id=client_id
-		)
+		if redir is None:
+			return flask.render_template(
+				"login.html",
+				client_id=client_id
+			)
+		else:
+			return flask.render_template(
+				"login.html",
+				redirect_uri=redir,
+				client_id=client_id
+			)
+
 
 	@app.route("/login", methods=["POST"])
 	def post_login():
-		client_id = flask.request.form["client_id"]
-		redir = flask.request.form["redirect_uri"]
-		email = flask.request.form["email"]
-		password = flask.request.form["pass"]
-		if client_id is None:
+		try:
+			client_id = flask.request.form["client_id"]
+		except (ValueError, KeyError):
 			flask.abort(400, "client_id not found!")
-		if email is None:
+		try:
+			redir = flask.request.form["redirect_uri"]
+		except (ValueError, KeyError):
+			redir = None
+		try:
+			email = flask.request.form["email"]
+		except (ValueError, KeyError):
 			flask.abort(400, "email not found!")
-		if password is None:
+		try:
+			password = flask.request.form["pass"]
+		except (ValueError, KeyError):
 			flask.abort(400, "password no found!")
 		user_id = login_hash(email,password)
 		q = "SELECT COUNT(*)\
@@ -123,18 +141,22 @@ def run_server():
 
 	@app.route("/oauth", methods=["POST"])
 	def post_oauth():
-		fn = flask.request.form["grant_type"]
-		if fn is None:
+		try:
+			fn = flask.request.form["grant_type"]
+		except (ValueError, KeyError):
 			flask.abort(400, "grant_type not found!")
 		if fn == "access_token":
-			client_id = flask.request.form["client_id"]
-			client_secret = flask.request.form["client_secret"]
-			code = flask.request.form["code"]
-			if client_id is None:
+			try:
+				client_id = flask.request.form["client_id"]
+			except (ValueError, KeyError):
 				flask.abort(400, "client_id not found!")
-			if client_secret is None:
+			try:
+				client_secret = flask.request.form["client_secret"]
+			except (ValueError, KeyError):
 				flask.abort(400, "client_secret not found!")
-			if code is None:
+			try:
+				code = flask.request.form["code"]
+			except (ValueError, KeyError):
 				flask.abort(400, "code not found!")
 			q = "SELECT COUNT(*)\
 				FROM apps\
