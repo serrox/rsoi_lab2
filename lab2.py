@@ -69,6 +69,20 @@ def run_server():
 		else:
 			return flask.render_template("Registration.html", error="There is user with such name or email already")
 
+	@app.route("/login", methods=["GET"])
+	def get_login():
+		client_id = flask.request.args["client_id"]
+		redir = flask.request.args["redirect_uri"]
+		if client_id is None:
+			flask.abort(400, "client_id no found!")
+		if redir is None:
+			flask.abort(400, "redirect url no found!")
+
+		return flask.render_template(
+			"login.html",
+			redirect_uri=redir,
+			client_id=client_id
+		)
 		
 	app.run(debug=True, port=8086)
 	
