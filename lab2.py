@@ -255,11 +255,34 @@ def run_server():
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
 		except (ValueError, KeyError):
-			flask.abort(400, "refresh_token not found!")
+			flask.abort(400, "token not found!")
 
 		if header_mass[0].lower() == "bearer":
 			token = header_mass[1]
-		check_token(token)
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT user_id FROM app_tokens WHERE token = '{}'".format(token)
+		r = db.exec_query(q).fetchall()
+		user_id = r[0][0]
+
+		q = "SELECT id, email, name, description\
+			FROM users WHERE id = '{}'".format(user_id)
+		r = db.exec_query(q).fetchone()
+
+		n, e, d = r[1], r[2], r[3]
+
+		return json.dumps({
+			"id": user_id,
+			"email": e,
+			"name": n,
+			"description": d,
+			"assignments": assignments,
+			"owned_offers": offers
+		})
 
 	app.run(debug=True, port=8086)
 	
