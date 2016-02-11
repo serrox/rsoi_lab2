@@ -288,7 +288,7 @@ def run_server():
 		try:
 			cv_id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "cv_id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -321,7 +321,7 @@ def run_server():
 		try:
 			id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -350,7 +350,7 @@ def run_server():
 		try:
 			id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -379,7 +379,7 @@ def run_server():
 		try:
 			id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -409,7 +409,7 @@ def run_server():
 		try:
 			id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -437,7 +437,7 @@ def run_server():
 		try:
 			id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -466,7 +466,7 @@ def run_server():
 		try:
 			id = flask.request.args["id"]
 		except (ValueError, KeyError):
-			flask.abort(400, "client_id not found!")
+			flask.abort(400, "id not found!")
 
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -489,6 +489,26 @@ def run_server():
 			"image": r[2],
 			"type": r[2],
 		})
+
+	@app.route("/mae_addproject", methods=["POST"])
+	def post_add_project():
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		try:
+			client_id = flask.request.form["user_id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "user_id not found!")
 
 	app.run(debug=True, port=8086)
 	
