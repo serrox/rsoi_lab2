@@ -273,16 +273,38 @@ def run_server():
 			FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
 
-		n, e, d = r[1], r[2], r[3]
+		n, e, d, cv = r[1], r[2], r[3], r[4]
 
 		return json.dumps({
 			"id": user_id,
 			"email": e,
 			"name": n,
 			"description": d,
-			"assignments": assignments,
-			"owned_offers": offers
+			"cv": cv
 		})
+
+	@app.route("/cv", methods=["GET"])
+	def get_cv():
+		try:
+			cv_id = flask.request.args["id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "client_id not found!")
+
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT * FROM CVs WHERE id = '{}'".format(cv_id)
+		r = db.exec_query(q).fetchone()
 
 	app.run(debug=True, port=8086)
 	
