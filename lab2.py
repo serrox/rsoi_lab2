@@ -316,6 +316,35 @@ def run_server():
 			"photos_id": r[7]
 		})
 
+	@app.route("/photo", methods=["GET"])
+	def get_photo():
+		try:
+			id = flask.request.args["id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "client_id not found!")
+
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT * FROM photos WHERE photo_id = '{}'".format(id)
+		r = db.exec_query(q).fetchone()
+
+		return json.dumps({
+			"name": r[1],
+			"comment": r[2],
+			"url": r[3],
+		})
+
 	app.run(debug=True, port=8086)
 	
 run_server()
