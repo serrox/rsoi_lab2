@@ -66,7 +66,7 @@ def run_server():
 	
 	@app.route("/status")
 	def status():
-		return "Statu: OK"
+		return "Status: OK"
 	
 	@app.route("/register", methods=["GET"])
 	def reg_page_get():
@@ -269,8 +269,7 @@ def run_server():
 		r = db.exec_query(q).fetchall()
 		user_id = r[0][0]
 
-		q = "SELECT id, email, name, description\
-			FROM users WHERE id = '{}'".format(user_id)
+		q = "SELECT * FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
 
 		n, e, d, cv = r[1], r[2], r[3], r[4]
@@ -490,7 +489,7 @@ def run_server():
 			"type": r[2],
 		})
 
-	@app.route("/mae_addproject", methods=["POST"])
+	@app.route("/me_addproject", methods=["POST"])
 	def post_add_project():
 		try:
 			header_mass = flask.request.headers["Authorization"].split(" ")
@@ -506,9 +505,30 @@ def run_server():
 			flask.abort(403)
 
 		try:
-			client_id = flask.request.form["user_id"]
+			user_id = flask.request.form["user_id"]
 		except (ValueError, KeyError):
 			flask.abort(400, "user_id not found!")
+
+		try:
+			project_id = flask.request.form["project_id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "project_id not found!")
+
+		q = "SELECT cv_id FROM users WHERE id = '{}'".format(user_id)
+		r = db.exec_query(q).fetchone()
+
+		cv_id = r[0]
+
+		q = "SELECT projects_id FROM CVs WHERE cv_id = '{}'".format(cv_id)
+		r = db.exec_query(q).fetchone()
+
+		proj_ids = r[0].json()
+		proj_ids.append(project_id)
+
+		q = "UPDATE CVs SET projects_id='{}' WHERE cv_id = '{}'".format(json.dumps(proj_ids),cv_id)
+		db.exec_query(q)
+		db.commit()
+		return "OK"
 
 	app.run(debug=True, port=8086)
 	
