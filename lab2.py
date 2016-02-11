@@ -272,7 +272,7 @@ def run_server():
 		q = "SELECT * FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
 
-		n, e, d, cv = r[1], r[2], r[3], r[4]
+		n, e, d, cv = r[0][1], r[0][2], r[0][3], r[0][4]
 
 		return json.dumps({
 			"id": user_id,
@@ -306,13 +306,13 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"image": r[2],
-			"profession": r[3],
-			"projects_id": r[4],
-			"videos_id": r[5],
-			"records_id": r[6],
-			"photos_id": r[7]
+			"name": r[0][1],
+			"image": r[0][2],
+			"profession": r[0][3],
+			"projects_id": r[0][4],
+			"videos_id": r[0][5],
+			"records_id": r[0][6],
+			"photos_id": r[0][7]
 		})
 
 	@app.route("/photo", methods=["GET"])
@@ -339,9 +339,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"comment": r[2],
-			"url": r[3]
+			"name": r[0][1],
+			"comment": r[0][2],
+			"url": r[0][3]
 		})
 
 	@app.route("/video_info", methods=["GET"])
@@ -368,9 +368,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"length": r[2],
-			"preview": r[4]
+			"name": r[0][1],
+			"length": r[0][2],
+			"preview": r[0][4]
 		})
 
 	@app.route("/video", methods=["GET"])
@@ -397,10 +397,10 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"length": r[2],
-			"url": r[3],
-			"preview": r[4]
+			"name": r[0][1],
+			"length": r[0][2],
+			"url": r[0][3],
+			"preview": r[0][4]
 		})
 
 	@app.route("/record_info", methods=["GET"])
@@ -427,8 +427,8 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"length": r[2]
+			"name": r[0][1],
+			"length": r[0][2]
 		})
 
 	@app.route("/record", methods=["GET"])
@@ -455,9 +455,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"length": r[2],
-			"url": r[3]
+			"name": r[0][1],
+			"length": r[0][2],
+			"url": r[0][3]
 		})
 
 	@app.route("/project", methods=["GET"])
@@ -484,9 +484,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[1],
-			"image": r[2],
-			"type": r[2],
+			"name": r[0][1],
+			"image": r[0][2],
+			"type": r[0][3],
 		})
 
 	@app.route("/me_addproject", methods=["POST"])
@@ -517,12 +517,12 @@ def run_server():
 		q = "SELECT cv_id FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
 
-		cv_id = r[0]
+		cv_id = r[0][0]
 
 		q = "SELECT projects_id FROM CVs WHERE cv_id = '{}'".format(cv_id)
 		r = db.exec_query(q).fetchone()
 
-		proj_ids = r[0].json()
+		proj_ids = r[0][0].json()
 		proj_ids.append(project_id)
 
 		q = "UPDATE CVs SET projects_id='{}' WHERE cv_id = '{}'".format(json.dumps(proj_ids),cv_id)
@@ -546,11 +546,6 @@ def run_server():
 			flask.abort(403)
 
 		try:
-			user_id = flask.request.form["user_id"]
-		except (ValueError, KeyError):
-			flask.abort(400, "user_id not found!")
-
-		try:
 			project_name = flask.request.form["project_name"]
 		except (ValueError, KeyError):
 			flask.abort(400, "project_name not found!")
@@ -566,6 +561,10 @@ def run_server():
 		if project_type!="film" and project_type!="serial" and project_type!="art" and project_type!="other" :
 			flask.abort(400, "project_type incorrect!")
 
+		q = "SELECT user_id FROM app_tokens WHERE token = '{}'".format(token)
+		r = db.exec_query(q).fetchall()
+		user_id = r[0][0]
+
 		project_id = md5(project_name + "salt1" + project_type + "salt2" + user_id)
 
 		q = "INSERT INTO projects VALUES ('{}', '{}', '{}', '{}')".format(project_id, project_name, project_image, project_type)
@@ -573,6 +572,42 @@ def run_server():
 		db.commit()
 
 		return "" + project_id
+
+	@app.route("/me_delete", methods=["POST"])
+	def post_me_delete():
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT user_id FROM app_tokens WHERE token = '{}'".format(token)
+		r = db.exec_query(q).fetchall()
+		user_id = r[0][0]
+
+		q = "SELECT cv_id FROM users WHERE id = '{}'".format(user_id)
+		r = db.exec_query(q).fetchone()
+
+		q = "DELETE FROM CVs WHERE id = '{}'".format(r[0][0])
+		db.exec_query(q)
+		db.commit()
+
+		q = "DELETE FROM app_tokens WHERE token = '{}'".format(token)
+		db.exec_query(q)
+		db.commit()
+
+		q = "DELETE FROM users WHERE id = '{}'".format(user_id )
+		db.exec_query(q)
+		db.commit()
+		
+		return "OK"
 
 	app.run(debug=True, port=8086)
 	
