@@ -345,6 +345,65 @@ def run_server():
 			"url": r[3],
 		})
 
+	@app.route("/video_info", methods=["GET"])
+	def get_video_inf():
+		try:
+			id = flask.request.args["id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "client_id not found!")
+
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT * FROM vedeos WHERE video_id = '{}'".format(id)
+		r = db.exec_query(q).fetchone()
+
+		return json.dumps({
+			"name": r[1],
+			"length": r[2],
+			"preview": r[4],
+		})
+
+	@app.route("/video", methods=["GET"])
+	def get_video():
+		try:
+			id = flask.request.args["id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "client_id not found!")
+
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT * FROM vedeos WHERE video_id = '{}'".format(id)
+		r = db.exec_query(q).fetchone()
+
+		return json.dumps({
+			"name": r[1],
+			"length": r[2],
+			"url": r[3],
+			"preview": r[4],
+		})
+
 	app.run(debug=True, port=8086)
 	
 run_server()
