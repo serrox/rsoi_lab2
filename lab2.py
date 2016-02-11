@@ -530,6 +530,50 @@ def run_server():
 		db.commit()
 		return "OK"
 
+	@app.route("/add_project", methods=["POST"])
+	def post_add_new_project():
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		try:
+			user_id = flask.request.form["user_id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "user_id not found!")
+
+		try:
+			project_name = flask.request.form["project_name"]
+		except (ValueError, KeyError):
+			flask.abort(400, "project_name not found!")
+		try:
+			project_image = flask.request.form["project_image"]
+		except (ValueError, KeyError):
+			project_image="null"
+		try:
+			project_type = flask.request.form["project_type"]
+		except (ValueError, KeyError):
+			flask.abort(400, "project_type not found!")
+
+		if project_type!="film" and project_type!="serial" and project_type!="art" and project_type!="other" :
+			flask.abort(400, "project_type incorrect!")
+
+		project_id = md5(project_name + "salt1" + project_type + "salt2" + user_id)
+
+		q = "INSERT INTO projects VALUES ('{}', '{}', '{}', '{}')".format(project_id, project_name, project_image, project_type)
+		db.exec_query(q)
+		db.commit()
+
+		return "" + project_id
+
 	app.run(debug=True, port=8086)
 	
 run_server()
