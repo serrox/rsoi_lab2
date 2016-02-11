@@ -303,8 +303,18 @@ def run_server():
 		if not check_token(token):
 			flask.abort(403)
 
-		q = "SELECT * FROM CVs WHERE id = '{}'".format(cv_id)
+		q = "SELECT * FROM CVs WHERE cv_id = '{}'".format(cv_id)
 		r = db.exec_query(q).fetchone()
+
+		return json.dumps({
+			"name": r[1],
+			"image": r[2],
+			"profession": r[3],
+			"projects_id": r[4],
+			"videos_id": r[5],
+			"records_id": r[6],
+			"photos_id": r[7]
+		})
 
 	app.run(debug=True, port=8086)
 	
