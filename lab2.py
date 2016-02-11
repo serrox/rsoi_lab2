@@ -461,6 +461,35 @@ def run_server():
 			"url": r[3]
 		})
 
+	@app.route("/project", methods=["GET"])
+	def get_project():
+		try:
+			id = flask.request.args["id"]
+		except (ValueError, KeyError):
+			flask.abort(400, "client_id not found!")
+
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT * FROM projects WHERE project_id = '{}'".format(id)
+		r = db.exec_query(q).fetchone()
+
+		return json.dumps({
+			"name": r[1],
+			"image": r[2],
+			"type": r[2],
+		})
+
 	app.run(debug=True, port=8086)
 	
 run_server()
