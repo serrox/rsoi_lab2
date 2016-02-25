@@ -549,8 +549,16 @@ def run_server():
 		return "OK"
 
 	@app.route("/me", methods=["PATCH"])
-	def patch_add_project():
-		return
+	def patch_me():
+		try:
+			action = flask.request.form["action"]
+		except (ValueError, KeyError):
+			flask.abort(400, "action not found!")
+		if action == "add_project":
+			return post_add_project()
+		else:
+			flask.abort(404, "unknown action!")
+
 
 	@app.route("/add_project", methods=["POST"])
 	def post_add_new_project():
@@ -593,11 +601,11 @@ def run_server():
 		db.exec_query(q)
 		db.commit()
 
-		return "" + project_id
+		return str(project_id)
 
 	@app.route("/project", methods=["PUT"])
 	def put_add_new_project():
-		return
+		return post_add_new_project()
 
 	@app.route("/me_delete", methods=["POST"])
 	def post_me_delete():
@@ -637,7 +645,7 @@ def run_server():
 
 	@app.route("/me", methods=["DELETE"])
 	def delete_me():
-		return
+		return post_me_delete()
 
 	@app.route("/search", methods=["GET"])
 	def get_serach():
