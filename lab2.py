@@ -115,7 +115,6 @@ def run_server():
 				client_id=client_id
 			)
 
-
 	@app.route("/login", methods=["POST"])
 	def post_login():
 		try:
@@ -328,10 +327,10 @@ def run_server():
 			"name": r[1],
 			"image": r[2],
 			"profession": r[3],
-			"projects_id": r[4],
-			"videos_id": r[5],
-			"records_id": r[6],
-			"photos_id": r[7]
+			"projects_id": json.loads(r[4]),
+			"videos_id": json.loads(r[5]),
+			"records_id": json.loads(r[6]),
+			"photos_id": json.loads(r[7])
 		})
 
 	@app.route("/photo", methods=["GET"])
@@ -549,6 +548,10 @@ def run_server():
 		db.commit()
 		return "OK"
 
+	@app.route("/me", methods=["PATCH"])
+	def patch_add_project():
+		return
+
 	@app.route("/add_project", methods=["POST"])
 	def post_add_new_project():
 		try:
@@ -592,6 +595,10 @@ def run_server():
 
 		return "" + project_id
 
+	@app.route("/project", methods=["PUT"])
+	def put_add_new_project():
+		return
+
 	@app.route("/me_delete", methods=["POST"])
 	def post_me_delete():
 		try:
@@ -627,6 +634,10 @@ def run_server():
 		db.commit()
 		
 		return "OK"
+
+	@app.route("/me", methods=["DELETE"])
+	def delete_me():
+		return
 
 	@app.route("/search", methods=["GET"])
 	def get_serach():

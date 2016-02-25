@@ -66,11 +66,21 @@ def get_info():
 	headers = { 'Authorization' : 'Bearer ' + access_token}
 	r = requests.get(url, headers=headers).json()
 
+	print(r)
 	print("CV name: " + str(r['name']))
 	print("Profession: " + str(r['profession']))
 	if str(r['image']) != 'null' :
 		print("CV image: " + str(r['image']))
-
+	print("Projects:")
+	for proj in r["projects_id"]:
+		url = "http://localhost:8086/project?id=" + str(proj)
+		headers = { 'Authorization' : 'Bearer ' + access_token}
+		r = requests.get(url, headers=headers).json()
+		print(" Project name:  " + r["name"])
+		print(" Project type:  " + r["type"])
+		print(" Project image: " + r["image"])
+		print(" ")
+	
 	return
 
 def find_CVs():
@@ -81,18 +91,20 @@ def find_CVs():
 	headers = { 'Authorization' : 'Bearer ' + access_token}
 	r = requests.get(url, headers=headers).json()
 	for CV in r:
-		print("Name: " + CV["name"])
+		print("Name:       " + CV["name"])
 		print("Profession: " + CV["Profession"])
-		print("Image: " + CV["Image"])
+		if CV["Image"] != "null":
+			print("Image:      " + CV["Image"])
 		print(" ")
 	print("Second 2")
 	url = "http://localhost:8086/search?count=2&start=2"
 	headers = { 'Authorization' : 'Bearer ' + access_token}
 	r = requests.get(url, headers=headers).json()
 	for CV in r:
-		print("Name: " + CV["name"])
+		print("Name:       " + CV["name"])
 		print("Profession: " + CV["Profession"])
-		print("Image: " + CV["Image"])
+		if CV["Image"] != "null":
+			print("Image:      " + CV["Image"])
 		print(" ")
 	return
 
