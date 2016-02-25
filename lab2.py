@@ -283,15 +283,15 @@ def run_server():
 		q = "SELECT * FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
 		
-		n = r[1]
+		n = r[3]
 		e = r[2]
 		
 		try:
-			d = r[3]
+			d = r[4]
 		except:
 			d=None
 			
-		cv = r[4]
+		cv = r[5]
 
 		return json.dumps({
 			"id": user_id,
@@ -325,13 +325,13 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"image": r[0][2],
-			"profession": r[0][3],
-			"projects_id": r[0][4],
-			"videos_id": r[0][5],
-			"records_id": r[0][6],
-			"photos_id": r[0][7]
+			"name": r[1],
+			"image": r[2],
+			"profession": r[3],
+			"projects_id": r[4],
+			"videos_id": r[5],
+			"records_id": r[6],
+			"photos_id": r[7]
 		})
 
 	@app.route("/photo", methods=["GET"])
@@ -358,9 +358,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"comment": r[0][2],
-			"url": r[0][3]
+			"name": r[1],
+			"comment": r[2],
+			"url": r[3]
 		})
 
 	@app.route("/video_info", methods=["GET"])
@@ -387,9 +387,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"length": r[0][2],
-			"preview": r[0][4]
+			"name": r[1],
+			"length": r[2],
+			"preview": r[4]
 		})
 
 	@app.route("/video", methods=["GET"])
@@ -416,10 +416,10 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"length": r[0][2],
-			"url": r[0][3],
-			"preview": r[0][4]
+			"name": r[1],
+			"length": r[2],
+			"url": r[3],
+			"preview": r[4]
 		})
 
 	@app.route("/record_info", methods=["GET"])
@@ -446,8 +446,8 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"length": r[0][2]
+			"name": r[1],
+			"length": r[2]
 		})
 
 	@app.route("/record", methods=["GET"])
@@ -474,9 +474,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"length": r[0][2],
-			"url": r[0][3]
+			"name": r[1],
+			"length": r[2],
+			"url": r[3]
 		})
 
 	@app.route("/project", methods=["GET"])
@@ -503,9 +503,9 @@ def run_server():
 		r = db.exec_query(q).fetchone()
 
 		return json.dumps({
-			"name": r[0][1],
-			"image": r[0][2],
-			"type": r[0][3],
+			"name": r[1],
+			"image": r[2],
+			"type": r[3],
 		})
 
 	@app.route("/me_addproject", methods=["POST"])
@@ -536,12 +536,12 @@ def run_server():
 		q = "SELECT cv_id FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
 
-		cv_id = r[0][0]
+		cv_id = r[0]
 
 		q = "SELECT projects_id FROM CVs WHERE cv_id = '{}'".format(cv_id)
 		r = db.exec_query(q).fetchone()
 
-		proj_ids = r[0][0].json()
+		proj_ids = r[0].json()
 		proj_ids.append(project_id)
 
 		q = "UPDATE CVs SET projects_id='{}' WHERE cv_id = '{}'".format(json.dumps(proj_ids),cv_id)

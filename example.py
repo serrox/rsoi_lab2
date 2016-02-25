@@ -56,7 +56,27 @@ def get_info():
 	headers = { 'Authorization' : 'Bearer ' + access_token}
 	r = requests.get(url, headers=headers).json()
 	print(r)
+	print("Name: " + str(r['name']))
+	print("E-mail: " + str(r['email']))
+	print("About: " + str(r['description']))
+
+	cv_id = r['cv']
+
+	url = "http://localhost:8086/cv?id=" + str(cv_id)
+	headers = { 'Authorization' : 'Bearer ' + access_token}
+	r = requests.get(url, headers=headers).json()
+
+	print("CV name: " + str(r['name']))
+	print("Profession: " + str(r['profession']))
+	if str(r['image']) != 'null' :
+		print("CV image: " + str(r['image']))
+
 	return
-	
+
+def find_CVs():
+
+	return
+
 authenticate_user()
 get_info()
+find_CVs()
