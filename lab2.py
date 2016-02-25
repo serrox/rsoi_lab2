@@ -134,7 +134,8 @@ def run_server():
 			password = flask.request.form["pass"]
 		except (ValueError, KeyError):
 			flask.abort(400, "password no found!")
-		user_id = login_hash(email,password)
+		user_id = md5((email+'salt').encode("utf-8")).hexdigest()
+		user_hash = login_hash(email,password)
 		q = "SELECT COUNT(*)\
 			FROM apps\
 			WHERE client_id='{}'".format(client_id)
@@ -184,7 +185,7 @@ def run_server():
 				flask.abort(400, "code not found!")
 			q = "SELECT COUNT(*)\
 				FROM apps\
-				WHERE secret_id = '{}' AND client_id = '{}'".format(secret_id, client_id)
+				WHERE secret_id = '{}' AND client_id = '{}'".format(client_secret, client_id)
 			r = db.exec_query(q).fetchone()
 			if r[0]<=0:
 				flask.abort(400, "wrong id")
@@ -205,7 +206,9 @@ def run_server():
 			rtoken = md5((client_id+'rtoken'+d).encode("utf-8")).hexdigest()
 
 			date = datetime.datetime.now() + datetime.timedelta(days=365)
-
+			
+			user_id = r[1]
+			
 			q = "INSERT INTO app_tokens VALUES\
 				('{}', '{}', '{}', '{}', '{}')".format(client_id, user_id, token, rtoken, date.isoformat())
 			r = db.exec_query(q)
@@ -271,8 +274,16 @@ def run_server():
 
 		q = "SELECT * FROM users WHERE id = '{}'".format(user_id)
 		r = db.exec_query(q).fetchone()
-
-		n, e, d, cv = r[0][1], r[0][2], r[0][3], r[0][4]
+		
+		n = r[1]
+		e = r[2]
+		
+		try:
+			d = r[3]
+		except:
+			d=None
+			
+		cv = r[4]
 
 		return json.dumps({
 			"id": user_id,
