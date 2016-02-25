@@ -628,6 +628,42 @@ def run_server():
 		
 		return "OK"
 
+	@app.route("/search", methods=["GET"])
+	def get_serach():
+		try:
+			count = flask.request.args["count"]
+		except (ValueError, KeyError):
+			count = 10
+		try:
+			start = flask.request.args["start"]
+		except (ValueError, KeyError):
+			start = 0
+
+		try:
+			header_mass = flask.request.headers["Authorization"].split(" ")
+		except (ValueError, KeyError):
+			flask.abort(400, "token not found!")
+
+		if header_mass[0].lower() == "bearer":
+			token = header_mass[1]
+		else:
+			flask.abort(400, "token not found!")
+
+		if not check_token(token):
+			flask.abort(403)
+
+		q = "SELECT * FROM CVs LIMIT " + str(count)
+
+		if not start == 0 :
+			q = q + " OFFSET " + str(start)
+		r = db.exec_query(q).fetchall()
+
+		result = []
+		for row in r :
+			result.append({"name" : row[1], "Profession" : row[3], "Image" : row[2] })
+
+		return json.dumps(result)
+
 	app.run(debug=True, port=8086)
 	
 run_server()

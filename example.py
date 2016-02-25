@@ -55,7 +55,7 @@ def get_info():
 	url = "http://localhost:8086/me"
 	headers = { 'Authorization' : 'Bearer ' + access_token}
 	r = requests.get(url, headers=headers).json()
-	print(r)
+	print("About Me")
 	print("Name: " + str(r['name']))
 	print("E-mail: " + str(r['email']))
 	print("About: " + str(r['description']))
@@ -74,7 +74,26 @@ def get_info():
 	return
 
 def find_CVs():
-
+	print(" ")
+	print("List all CVs")
+	print("First 2")
+	url = "http://localhost:8086/search?count=2"
+	headers = { 'Authorization' : 'Bearer ' + access_token}
+	r = requests.get(url, headers=headers).json()
+	for CV in r:
+		print("Name: " + CV["name"])
+		print("Profession: " + CV["Profession"])
+		print("Image: " + CV["Image"])
+		print(" ")
+	print("Second 2")
+	url = "http://localhost:8086/search?count=2&start=2"
+	headers = { 'Authorization' : 'Bearer ' + access_token}
+	r = requests.get(url, headers=headers).json()
+	for CV in r:
+		print("Name: " + CV["name"])
+		print("Profession: " + CV["Profession"])
+		print("Image: " + CV["Image"])
+		print(" ")
 	return
 
 authenticate_user()
