@@ -83,7 +83,7 @@ def run_server():
 			user_id = md5((p['email']+'salt').encode("utf-8")).hexdigest()
 			user_hash = login_hash(p['email'],p['pass'])
 			q = "INSERT INTO users VALUES\
-				('{}', '{}', '{}', '{}', '')".format(
+				('{}', '{}', '{}', '{}', '', '')".format(
 				user_id, user_hash, p['email'], p['name']
 			)
 			db.exec_query(q)
@@ -136,6 +136,14 @@ def run_server():
 			flask.abort(400, "password no found!")
 		user_id = md5((email+'salt').encode("utf-8")).hexdigest()
 		user_hash = login_hash(email,password)
+		
+		q = "SELECT *\
+			FROM users\
+			WHERE email='{}'".format(email)
+		r = db.exec_query(q).fetchone()
+		if r[0] != user_id or r[1] != user_hash :
+			flask.abort(400, "Username or password incorrect")
+		
 		q = "SELECT COUNT(*)\
 			FROM apps\
 			WHERE client_id='{}'".format(client_id)
